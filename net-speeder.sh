@@ -55,8 +55,17 @@ install(){
 		echo -e "${Info} virt is OpenVZ " && gcc -O2 -o net-speeder net-speeder.c -lpcap -lnet $1 -DCOOKED
 	elif [[ "${virt}" = "kvm" || "${virt}" = "xen" ]]; then
 		echo -e "${Info} virt is ${virt} " && gcc -O2 -o net-speeder net-speeder.c -lpcap -lnet $1
-	else echo -e "${Error} not support virt " && exit 1
+	else
+		echo -e "${Error} not support virt " && exit 1
 	fi
+	
+	if [[ -f net-speeder ]]; then
+		echo -e "${Info} make process finished"
+	else
+		echo -e "${Error} make process failed, please check!" && exit 1
+	fi
+	
+	start
 }
 
 start(){
@@ -68,7 +77,18 @@ start(){
 		echo -e "${Info} virt is OpenVZ " && nohup ./net-speeder venet0 "ip" &
 	elif [[ "${virt}" = "kvm" || "${virt}" = "xen" ]]; then
 		echo -e "${Info} virt is ${virt}" && nohup ./net-speeder eth0 "ip" &
-	else echo -e "${Error} not support virt " && exit 1
+	else
+		echo -e "${Error} not support virt " && exit 1
+	fi
+	
+	status
+}
+
+status(){
+	pid=`ps -ef|grep "net-speeder"|grep -v "grep"|awk '{print $2}'`
+	if [[ -z ${pid} ]]; then
+		echo -e "${Error} net-speeder not running, please check!" && exit 1
+		else echo -e "${Info} net-speeder is running"
 	fi
 }
 
@@ -91,6 +111,9 @@ case "${command}" in
 	 ;;
 	 start)
 	 start
+	 ;;
+	 status)
+	 status
 	 ;;
 	 uninstall)
 	 uninstall
